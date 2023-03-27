@@ -8,6 +8,7 @@ class RouteData {
 
   final String distance;
   final String turn;
+  final dynamic route;
 
   RouteData({
     required this.routeName,
@@ -16,5 +17,6 @@ class RouteData {
     required this.color,
     required this.distance,
     required this.turn,
+    required this.route,
   });
 }

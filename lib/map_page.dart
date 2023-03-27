@@ -63,6 +63,7 @@ class _MapPageState extends State<MapPage> {
               setState(() {
                 _polylines.clear();
                 alt_routes.clear();
+                routeData.clear();
                 markers.clear();
                 origin = null;
                 destination = null;
@@ -107,7 +108,7 @@ class _MapPageState extends State<MapPage> {
                             height: MediaQuery.of(context).size.height * 0.005,
                           ),
                           Expanded(
-                            child: ListView.builder(
+                              child: ListView.builder(
                                   itemCount: routeData.length,
                                   itemBuilder: (_, index) {
                                     return GestureDetector(
@@ -115,11 +116,18 @@ class _MapPageState extends State<MapPage> {
                                         setState(() {
                                           currentTile = index;
                                           isExpanded = !isExpanded;
+
+                                          _polylines.clear();
+
+                                          Polyline polyline = _createPolyline(
+                                            routeData[index].route,
+                                            index,
+                                          );
+                                          _polylines.add(polyline);
                                         });
                                         String min = routeData[index]
                                             .routeDescription
-                                            .replaceAll(
-                                                 RegExp(r'[^0-9]'), '');
+                                            .replaceAll(RegExp(r'[^0-9]'), '');
                                         DateTime now = DateTime.now().add(
                                           Duration(
                                             minutes: int.parse(min),
@@ -147,9 +155,7 @@ class _MapPageState extends State<MapPage> {
                                                 : false,
                                       ),
                                     );
-                                  })
-                      
-                          ),
+                                  })),
                         ],
                       )
                     : ListView(
@@ -351,7 +357,7 @@ class _MapPageState extends State<MapPage> {
       if (jsonResponse['status'] == 'OK') {
         setState(() {
           _polylines.clear();
-          int routeId = 1;
+          int routeId = 0;
           jsonResponse['routes'].forEach((route) {
             if (routeId == 1) {
               setState(() {
@@ -362,18 +368,19 @@ class _MapPageState extends State<MapPage> {
 
             routeData.add(
               RouteData(
-                color: routeId == 1
+                color: routeId == 0
                     ? Colors.blue
-                    : routeId == 2
+                    : routeId == 1
                         ? Colors.red
                         : Colors.orange,
-                routeName: 'Route $routeId',
+                routeName: 'Route ${routeId + 1}',
                 routeDescription:
                     'Duration: ${route['legs'][0]['duration']['text']}',
                 routeDistance:
                     'Distance: ${route['legs'][0]['distance']['text']}',
                 distance: route['legs'][0]['distance']['text'],
                 turn: route['legs'][0]['steps'][0]['html_instructions'],
+                route: route,
               ),
             );
             Polyline polyline = _createPolyline(route, routeId);
@@ -400,9 +407,9 @@ class _MapPageState extends State<MapPage> {
     return Polyline(
       polylineId: PolylineId('route_$routeId'),
       points: polylinePoints,
-      color: routeId == 1
+      color: routeId == 0
           ? Colors.blue
-          : routeId == 2
+          : routeId == 1
               ? Colors.red
               : Colors.orange,
       width: 5,
